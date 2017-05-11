@@ -33,8 +33,11 @@ import javax.swing.tree.TreePath;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 
+import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.math.NumberUtils;
+import com.sun.corba.se.impl.ior.JIDLObjectKeyTemplate;
 import javafx.application.Platform;
 
+import jdk.nashorn.internal.scripts.JO;
 import org.jabref.Globals;
 import org.jabref.JabRefExecutorService;
 import org.jabref.collab.ChangeScanner;
@@ -972,7 +975,8 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
         }
     }
 
-    private String rootPath = null;
+    private static boolean foundFile = false;
+    private static ArrayList<File> files = new ArrayList<>();
     private void openExternalFile() {
         JabRefExecutorService.INSTANCE.execute(() -> {
             final List<BibEntry> bes = mainTable.getSelectedEntries();
@@ -986,32 +990,92 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                 JOptionPane.showMessageDialog(frame, "File does not have a name!");
                 System.out.println("noname");
                 return;
-            } else if (rootPath == null) {
-                //JOptionPane.showMessageDialog(frame, "Set a main file directory on preferences!");
-                //System.out.println("noprefs");
-
+            } else if (!Globals.prefs.getFileDirectoryPreferences().getFileDirectory().isPresent()) {
+                JOptionPane.showMessageDialog(frame, "No file directory found, set a main file directory on preferences!");
+                return;
+                /*
                 final JFrame frameRootDir = new JFrame();
                 frameRootDir.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 rootPath = JOptionPane.showInputDialog("Inform the root directory path:");
-
+                Globals.prefs.getFileDirectoryPreferences().getFileDirectory() =
+                */
             }
 
-            if (rootPath != null) {
+            if (Globals.prefs.getFileDirectoryPreferences().getFileDirectory().isPresent()) {
                 FindFiles ff = new FindFiles();
-                System.out.println("searching...");
-                System.out.println(entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]")) + "   " + Globals.prefs.getFileDirectoryPreferences());
+                //System.out.println("searching...");
+                //System.out.println(entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]")) + "   " + Globals.prefs.getFileDirectoryPreferences());
                 String fileName = entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]"));
-                //ff.findAndOpenFile(fileName, new File(Globals.prefs.getFileDirectoryPreferences().toString()));
-                String tst = fileName + ".pdf";
-                System.out.println(tst.substring(0, tst.indexOf(".")));
-                final JFrame frameSearching = new JFrame();
-                frameSearching.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                JOptionPane.showMessageDialog(frameSearching, "Searching...");
-                //frameSearching.setVisible(true);
-                System.out.println(fileName + " " + rootPath);
-                ff.findAndOpenFile(fileName, new File(rootPath));
+                //final JFrame frameSearching = new JFrame();
+                //frameSearching.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                //System.out.println(Globals.prefs.getFileDirectoryPreferences().getFileDirectory());
 
 
+                String fileDirectoryPath = Globals.prefs.getFileDirectoryPreferences().getFileDirectory().toString();
+                fileDirectoryPath = (Globals.prefs.getFileDirectoryPreferences().getFileDirectory().toString()).substring(fileDirectoryPath.indexOf("[") + 1, fileDirectoryPath.indexOf("]"));
+                System.out.println(fileName + " " + fileDirectoryPath);
+                //JOptionPane.showMessageDialog(null, "Searching...", "Searching...", JOptionPane.INFORMATION_MESSAGE);
+                JDialog searchMessage = new JDialog();
+                new Thread() {
+                    public void run() {
+                        searchMessage.setTitle("Searching...");
+                        searchMessage.setModal(true);
+                        searchMessage.setContentPane(new JOptionPane("Searching...", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null));
+                        searchMessage.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                        searchMessage.pack();
+                        searchMessage.setLocationRelativeTo(null);
+                        searchMessage.setVisible(true);
+                    }
+                }.start();
+                ff.findAndOpenFile(fileName, new File(fileDirectoryPath), files);
+
+                if (files.size() > 1) {
+                    int index = 1;
+                    //frameSearching.dispose();
+                    searchMessage.dispose();
+                    String msg = "Select a file to open: \n";
+                    for (File f : files) {
+                        msg += index + " - " + f.getName() + "\n";
+                        index++;
+                    }
+                    String option = null;
+                    while (!NumberUtils.isNumber(option)) {
+                        option = JOptionPane.showInputDialog(null, msg, "Files found", JOptionPane.QUESTION_MESSAGE);
+                        if (!NumberUtils.isNumber(option) || Integer.parseInt(option) > index - 1) {
+                            JOptionPane.showMessageDialog(null, "Choose a valid option!", "Error!", JOptionPane.ERROR_MESSAGE);
+                            option = null;
+                        }
+                    }
+
+                    try {
+                        Desktop desktop = null;
+                        if (Desktop.isDesktopSupported()) {
+                            desktop = Desktop.getDesktop();
+                        }
+                        desktop.open(files.get(Integer.parseInt(option) - 1));
+                        foundFile = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                } else if (files.size() == 1) {
+                    searchMessage.dispose();
+                    try {
+                        Desktop desktop = null;
+                        if (Desktop.isDesktopSupported()) {
+                            desktop = Desktop.getDesktop();
+                        }
+                        desktop.open(files.get(0));
+                        foundFile = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    searchMessage.dispose();
+                    final JFrame frameNotFound = new JFrame();
+                    frameNotFound.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    JOptionPane.showMessageDialog(null, "File not found!", "Error!", JOptionPane.ERROR_MESSAGE);
+                }
             }
 
             //Globals.prefs.getFileDirectoryPreferences();
@@ -1040,7 +1104,6 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
         });
 
     }
-
 
     /**
      * This method is called from JabRefFrame if a database specific action is requested by the user. Runs the command
