@@ -1,7 +1,6 @@
 package org.jabref.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
@@ -29,14 +28,7 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.tree.TreePath;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -980,6 +972,7 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
         }
     }
 
+    private String rootPath = null;
     private void openExternalFile() {
         JabRefExecutorService.INSTANCE.execute(() -> {
             final List<BibEntry> bes = mainTable.getSelectedEntries();
@@ -988,6 +981,44 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                 return;
             }
 
+            final BibEntry entry = bes.get(0);
+            if (entry.hasField(FieldName.FILE)) {
+                JOptionPane.showMessageDialog(frame, "File does not have a name!");
+                System.out.println("noname");
+                return;
+            } else if (rootPath == null) {
+                //JOptionPane.showMessageDialog(frame, "Set a main file directory on preferences!");
+                //System.out.println("noprefs");
+
+                final JFrame frameRootDir = new JFrame();
+                frameRootDir.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                rootPath = JOptionPane.showInputDialog("Inform the root directory path:");
+
+            }
+
+            if (rootPath != null) {
+                FindFiles ff = new FindFiles();
+                System.out.println("searching...");
+                System.out.println(entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]")) + "   " + Globals.prefs.getFileDirectoryPreferences());
+                String fileName = entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]"));
+                //ff.findAndOpenFile(fileName, new File(Globals.prefs.getFileDirectoryPreferences().toString()));
+                String tst = fileName + ".pdf";
+                System.out.println(tst.substring(0, tst.indexOf(".")));
+                final JFrame frameSearching = new JFrame();
+                frameSearching.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                JOptionPane.showMessageDialog(frameSearching, "Searching...");
+                //frameSearching.setVisible(true);
+                System.out.println(fileName + " " + rootPath);
+                ff.findAndOpenFile(fileName, new File(rootPath));
+
+
+            }
+
+            //Globals.prefs.getFileDirectoryPreferences();
+
+
+
+            /*
             final BibEntry entry = bes.get(0);
             if (!entry.hasField(FieldName.FILE)) {
                 // no bibtex field
@@ -1005,8 +1036,11 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
             ExternalFileMenuItem item = new ExternalFileMenuItem(frame(), entry, "", flEntry.getLink(),
                     flEntry.getType().get().getIcon(), bibDatabaseContext, flEntry.getType());
             item.doClick();
+            */
         });
+
     }
+
 
     /**
      * This method is called from JabRefFrame if a database specific action is requested by the user. Runs the command
