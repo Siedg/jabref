@@ -1055,7 +1055,7 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                     String option = null;
                     while (!NumberUtils.isNumber(option)) {
                         option = JOptionPane.showInputDialog(null, msg, "Files found", JOptionPane.QUESTION_MESSAGE);
-                        if (!NumberUtils.isNumber(option) || Integer.parseInt(option) > index - 1) {
+                        if (!NumberUtils.isNumber(option) || Integer.parseInt(option) > index - 1 || Integer.parseInt(option) < 1) {
                             JOptionPane.showMessageDialog(null, "Choose a valid option!", "Error!", JOptionPane.ERROR_MESSAGE);
                             option = null;
                         }
