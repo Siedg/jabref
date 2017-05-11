@@ -522,9 +522,9 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
 
         actions.put(Actions.ADD_FILE_LINK, new AttachFileAction(this));
 
-        actions.put(Actions.OPEN_EXTERNAL_FILE, (BaseAction) () -> openExternalFile());
+        actions.put(Actions.OPEN_EXTERNAL_FILE, (BaseAction) () -> openExternalBySearching(true));
 
-        actions.put(Actions.OPEN_FOLDER, (BaseAction) () -> JabRefExecutorService.INSTANCE.execute(() -> {
+        actions.put(Actions.OPEN_FOLDER, (BaseAction) () -> openExternalBySearching(false));/*JabRefExecutorService.INSTANCE.execute(() -> {
             final List<Path> files = FileUtil.getListOfLinkedFiles(mainTable.getSelectedEntries(),
                     bibDatabaseContext.getFileDirectoriesAsPaths(Globals.prefs.getFileDirectoryPreferences()));
             for (final Path f : files) {
@@ -534,7 +534,7 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                     LOGGER.info("Could not open folder", e);
                 }
             }
-        }));
+        }));*/
 
         actions.put(Actions.OPEN_CONSOLE, (BaseAction) () -> JabRefDesktop
                 .openConsole(frame.getCurrentBasePanel().getBibDatabaseContext().getDatabaseFile().orElse(null)));
@@ -975,10 +975,39 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
         }
     }
 
-    private static boolean foundFile = false;
-    private static ArrayList<File> files = new ArrayList<>();
+
     private void openExternalFile() {
         JabRefExecutorService.INSTANCE.execute(() -> {
+            final List<BibEntry> bes = mainTable.getSelectedEntries();
+            if (bes.size() != 1) {
+                output(Localization.lang("This operation requires exactly one item to be selected."));
+                return;
+            }
+            final BibEntry entry = bes.get(0);
+            if (!entry.hasField(FieldName.FILE)) {
+                // no bibtex field
+                new SearchAndOpenFile(entry, BasePanel.this).searchAndOpen();
+                return;
+            }
+            FileListTableModel fileListTableModel = new FileListTableModel();
+            entry.getField(FieldName.FILE).ifPresent(fileListTableModel::setContent);
+            if (fileListTableModel.getRowCount() == 0) {
+                // content in BibTeX field is not readable
+                new SearchAndOpenFile(entry, BasePanel.this).searchAndOpen();
+                return;
+            }
+            FileListEntry flEntry = fileListTableModel.getEntry(0);
+            ExternalFileMenuItem item = new ExternalFileMenuItem(frame(), entry, "", flEntry.getLink(),
+                    flEntry.getType().get().getIcon(), bibDatabaseContext, flEntry.getType());
+            item.doClick();
+        });
+
+    }
+
+    private static ArrayList<File> files = new ArrayList<>();
+    public void openExternalBySearching(boolean isFileOrDirectory) {
+        JabRefExecutorService.INSTANCE.execute(() -> {
+
             final List<BibEntry> bes = mainTable.getSelectedEntries();
             if (bes.size() != 1) {
                 output(Localization.lang("This operation requires exactly one item to be selected."));
@@ -993,28 +1022,14 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
             } else if (!Globals.prefs.getFileDirectoryPreferences().getFileDirectory().isPresent()) {
                 JOptionPane.showMessageDialog(frame, "No file directory found, set a main file directory on preferences!");
                 return;
-                /*
-                final JFrame frameRootDir = new JFrame();
-                frameRootDir.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                rootPath = JOptionPane.showInputDialog("Inform the root directory path:");
-                Globals.prefs.getFileDirectoryPreferences().getFileDirectory() =
-                */
             }
 
             if (Globals.prefs.getFileDirectoryPreferences().getFileDirectory().isPresent()) {
                 FindFiles ff = new FindFiles();
-                //System.out.println("searching...");
-                //System.out.println(entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]")) + "   " + Globals.prefs.getFileDirectoryPreferences());
                 String fileName = entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]"));
-                //final JFrame frameSearching = new JFrame();
-                //frameSearching.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                //System.out.println(Globals.prefs.getFileDirectoryPreferences().getFileDirectory());
-
-
                 String fileDirectoryPath = Globals.prefs.getFileDirectoryPreferences().getFileDirectory().toString();
                 fileDirectoryPath = (Globals.prefs.getFileDirectoryPreferences().getFileDirectory().toString()).substring(fileDirectoryPath.indexOf("[") + 1, fileDirectoryPath.indexOf("]"));
                 System.out.println(fileName + " " + fileDirectoryPath);
-                //JOptionPane.showMessageDialog(null, "Searching...", "Searching...", JOptionPane.INFORMATION_MESSAGE);
                 JDialog searchMessage = new JDialog();
                 new Thread() {
                     public void run() {
@@ -1031,7 +1046,6 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
 
                 if (files.size() > 1) {
                     int index = 1;
-                    //frameSearching.dispose();
                     searchMessage.dispose();
                     String msg = "Select a file to open: \n";
                     for (File f : files) {
@@ -1052,8 +1066,11 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                         if (Desktop.isDesktopSupported()) {
                             desktop = Desktop.getDesktop();
                         }
-                        desktop.open(files.get(Integer.parseInt(option) - 1));
-                        foundFile = true;
+                        if (isFileOrDirectory) {
+                            desktop.open(files.get(Integer.parseInt(option) - 1));
+                        } else if (!isFileOrDirectory) {
+                            desktop.open(new File (files.get(Integer.parseInt(option) - 1).getParent()));
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -1065,8 +1082,11 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                         if (Desktop.isDesktopSupported()) {
                             desktop = Desktop.getDesktop();
                         }
-                        desktop.open(files.get(0));
-                        foundFile = true;
+                        if (isFileOrDirectory) {
+                            desktop.open(files.get(0));
+                        } else if (!isFileOrDirectory) {
+                            desktop.open(new File (files.get(0).getParent()));
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -1077,31 +1097,11 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
                     JOptionPane.showMessageDialog(null, "File not found!", "Error!", JOptionPane.ERROR_MESSAGE);
                 }
             }
-
-            //Globals.prefs.getFileDirectoryPreferences();
-
-
-
-            /*
-            final BibEntry entry = bes.get(0);
-            if (!entry.hasField(FieldName.FILE)) {
-                // no bibtex field
-                new SearchAndOpenFile(entry, BasePanel.this).searchAndOpen();
-                return;
-            }
-            FileListTableModel fileListTableModel = new FileListTableModel();
-            entry.getField(FieldName.FILE).ifPresent(fileListTableModel::setContent);
-            if (fileListTableModel.getRowCount() == 0) {
-                // content in BibTeX field is not readable
-                new SearchAndOpenFile(entry, BasePanel.this).searchAndOpen();
-                return;
-            }
-            FileListEntry flEntry = fileListTableModel.getEntry(0);
-            ExternalFileMenuItem item = new ExternalFileMenuItem(frame(), entry, "", flEntry.getLink(),
-                    flEntry.getType().get().getIcon(), bibDatabaseContext, flEntry.getType());
-            item.doClick();
-            */
         });
+        files.clear();
+    }
+
+    public void openFolderBySearching() {
 
     }
 
