@@ -58,6 +58,7 @@ public class Actions {
     public static final String SAVE_SELECTED_AS = "saveSelectedAs";
     public static final String SAVE_SELECTED_AS_PLAIN = "saveSelectedAsPlain";
     public static final String SEARCH = "search";
+    public static final String SHOW_CITATIONS_NUMBER = "showCitationsNumber";
     public static final String SHOW_IMPACT_FACTOR = "showImpactFactor";
     public static final String GLOBAL_SEARCH = "globalSearch";
     public static final String SELECT_ALL = "selectAll";

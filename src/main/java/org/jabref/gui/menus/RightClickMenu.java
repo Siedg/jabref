@@ -179,6 +179,7 @@ public class RightClickMenu extends JPopupMenu implements PopupMenuListener {
 
         addSeparator();
 
+        add(new GeneralAction(Actions.SHOW_CITATIONS_NUMBER, "Show citations number", null, KeyBinding.SHOW_CITATIONS_NUMBER));
         add(new GeneralAction(Actions.SHOW_IMPACT_FACTOR, "Show impact factor", null, KeyBinding.SHOW_IMPACT_FACTOR));
 
         addSeparator();
