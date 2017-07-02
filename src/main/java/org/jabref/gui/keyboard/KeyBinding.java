@@ -82,7 +82,7 @@ public enum KeyBinding {
     SELECT_ALL("Select all", Localization.lang("Select all"), "ctrl A", KeyBindingCategory.EDIT),
     SELECT_FIRST_ENTRY("Select first entry", Localization.lang("Select first entry"), "HOME", KeyBindingCategory.EDIT),
     SELECT_LAST_ENTRY("Select last entry", Localization.lang("Select last entry"), "END", KeyBindingCategory.EDIT),
-    SHOW_IMPACT_FACTOR("Show impact factor", "Show impact factor", "ctrl shift Q", KeyBindingCategory.VIEW),
+    SHOW_IMPACT_FACTOR("Show impact factor", "Show impact factor", "", KeyBindingCategory.VIEW),
     STRING_DIALOG_ADD_STRING("String dialog, add string", Localization.lang("String dialog, add string"), "ctrl N", KeyBindingCategory.FILE),
     STRING_DIALOG_REMOVE_STRING("String dialog, remove string", Localization.lang("String dialog, remove string"), "shift DELETE", KeyBindingCategory.FILE),
     SYNCHRONIZE_FILES("Synchronize files", Localization.lang("Synchronize files"), "ctrl shift F7", KeyBindingCategory.QUALITY),

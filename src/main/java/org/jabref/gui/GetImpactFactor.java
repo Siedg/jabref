@@ -30,7 +30,6 @@ import java.util.Map;
  */
 public class GetImpactFactor {
     public ArrayList<String> GetImpactFactor (String entryName){
-        //Map<String, Double> iFactor = new HashMap<String, String>();
         ArrayList<String> iFactor = new ArrayList<>();
         try {
             FileInputStream fis = new FileInputStream(new File("src\\main\\resources\\databases\\Thomson Reuters - JCR 2015.xls"));
@@ -49,7 +48,6 @@ public class GetImpactFactor {
             }
 
             boolean found = false;
-
             // Iterate between rows
             Iterator<Row> rowIterator = sheet.iterator();
             while (rowIterator.hasNext()) {
@@ -65,26 +63,23 @@ public class GetImpactFactor {
                         found = true;
                     }
 
-                    if (found && /*cell.getColumnIndex() == colMap.get("Journal Impact Factor")*/ cell.getColumnIndex() == 5) {
-                        //iFactor.put("Journal Impact Factor", cell.getStringCellValue());
+                    // Journal Impact Factor
+                    if (found && cell.getColumnIndex() == 5) {
                         iFactor.add(cell.getStringCellValue());
                     }
 
-                    if (found &&/*cell.getColumnIndex() == colMap.get("Impact Factor without Journal Self Cites")*/ cell.getColumnIndex() == 6) {
-                        //iFactor.put("Impact Factor without Journal Self Cites", cell.getStringCellValue());
+                    // Impact Factor without Journal Self Cites
+                    if (found && cell.getColumnIndex() == 6) {
                         iFactor.add(cell.getStringCellValue());
                     }
 
-                    if (found &&/*cell.getColumnIndex() == colMap.get("5-Year Impact Factor")*/ cell.getColumnIndex() == 7) {
-                        //iFactor.put("5-Year Impact Factor", cell.getStringCellValue());
+                    // 5-Year Impact Factor
+                    if (found && cell.getColumnIndex() == 7) {
                         iFactor.add(cell.getStringCellValue());
                     }
-
                 }
             }
-            System.out.println("===============");
-            System.out.println(iFactor.size());
-            System.out.println("===============");
+
             if (iFactor.isEmpty()) {
                 JDialog errorMessage = new JDialog();
                 new Thread() {

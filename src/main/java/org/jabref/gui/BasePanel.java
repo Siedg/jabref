@@ -1114,14 +1114,7 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
 
             GetImpactFactor impactFactor = new GetImpactFactor();
             ArrayList<String> iFactor = impactFactor.GetImpactFactor(entryName);
-            //Map<String, String> iFactor = impactFactor.GetImpactFactor(entryName);
-            //Iterator iterator = iFactor.entrySet().iterator();
             String message = "";
-            //while (iterator.hasNext()) {
-            //    Map.Entry pair = (Map.Entry) iterator.next();
-            //    message = message + pair.getKey() + ": " + pair.getValue();
-            //}
-
             message += "Impact Factor: " + iFactor.get(0) + "\n";
             message += "Impact Factor without Journal Self Cites: " + iFactor.get(1) + "\n";
             message += "5-Year Impact Factor: " + iFactor.get(2) + "\n";

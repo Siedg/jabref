@@ -177,11 +177,7 @@ public class RightClickMenu extends JPopupMenu implements PopupMenuListener {
         openUrlAction.setEnabled(isFieldSetForSelectedEntry(FieldName.URL) || isFieldSetForSelectedEntry(FieldName.DOI));
         add(openUrlAction);
 
-        /*
-        GeneralAction showImpactFactorAction = new GeneralAction(Actions.SHOW_IMPACT_FACTOR, "Show impact factor",
-                null, KeyBinding.SHOW_IMPACT_FACTOR);
-        showImpactFactorAction.setEnabled(true);
-        */
+        addSeparator();
 
         add(new GeneralAction(Actions.SHOW_IMPACT_FACTOR, "Show impact factor", null, KeyBinding.SHOW_IMPACT_FACTOR));
 
