@@ -94,6 +94,7 @@ public class RightClickMenu extends JPopupMenu implements PopupMenuListener {
         add(new GeneralAction(Actions.PASTE, Localization.lang("Paste"), IconTheme.JabRefIcon.PASTE.getSmallIcon(), KeyBinding.PASTE));
         add(new GeneralAction(Actions.CUT, Localization.lang("Cut"), IconTheme.JabRefIcon.CUT.getSmallIcon(), KeyBinding.CUT));
         add(new GeneralAction(Actions.DELETE, Localization.lang("Delete"), IconTheme.JabRefIcon.DELETE_ENTRY.getSmallIcon(), KeyBinding.DELETE_ENTRY));
+        //add(new GeneralAction(Actions.SHOW_IMPACT_FACTOR, "Show impact factor", IconTheme.JabRefIcon.COPY.getSmallIcon(), KeyBinding.SHOW_IMPACT_FACTOR));
         GeneralAction printPreviewAction = new GeneralAction(Actions.PRINT_PREVIEW, Localization.lang("Print entry preview"), IconTheme.JabRefIcon.PRINTED.getSmallIcon());
         printPreviewAction.setEnabled(!multiple);
         add(printPreviewAction);
@@ -175,6 +176,14 @@ public class RightClickMenu extends JPopupMenu implements PopupMenuListener {
                 IconTheme.JabRefIcon.WWW.getSmallIcon(), KeyBinding.OPEN_URL_OR_DOI);
         openUrlAction.setEnabled(isFieldSetForSelectedEntry(FieldName.URL) || isFieldSetForSelectedEntry(FieldName.DOI));
         add(openUrlAction);
+
+        /*
+        GeneralAction showImpactFactorAction = new GeneralAction(Actions.SHOW_IMPACT_FACTOR, "Show impact factor",
+                null, KeyBinding.SHOW_IMPACT_FACTOR);
+        showImpactFactorAction.setEnabled(true);
+        */
+
+        add(new GeneralAction(Actions.SHOW_IMPACT_FACTOR, "Show impact factor", null, KeyBinding.SHOW_IMPACT_FACTOR));
 
         addSeparator();
 

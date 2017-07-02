@@ -536,6 +536,8 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
             }
         }));*/
 
+        actions.put(Actions.SHOW_IMPACT_FACTOR, (BaseAction) () -> showImpactFactor());
+
         actions.put(Actions.OPEN_CONSOLE, (BaseAction) () -> JabRefDesktop
                 .openConsole(frame.getCurrentBasePanel().getBibDatabaseContext().getDatabaseFile().orElse(null)));
 
@@ -1101,7 +1103,7 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
         files.clear();
     }
 
-    public void openFolderBySearching() {
+    public void showImpactFactor() {
 
     }
 
