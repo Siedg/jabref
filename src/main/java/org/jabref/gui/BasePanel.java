@@ -15,17 +15,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
@@ -143,6 +134,7 @@ import com.jgoodies.forms.builder.FormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import sun.plugin2.jvm.CircularByteBuffer;
 
 public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListener {
 
@@ -1104,7 +1096,43 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
     }
 
     public void showImpactFactor() {
+        JabRefExecutorService.INSTANCE.execute(() -> {
+            final List<BibEntry> bes = mainTable.getSelectedEntries();
+            if (bes.size() != 1) {
+                output(Localization.lang("This operation requires exactly one item to be selected."));
+                return;
+            }
 
+            final BibEntry entry = bes.get(0);
+            if (entry.hasField(FieldName.FILE)) {
+                JOptionPane.showMessageDialog(frame, "File does not have a name!");
+                System.out.println("noname");
+                return;
+            }
+
+            String entryName = entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]"));
+
+            GetImpactFactor impactFactor = new GetImpactFactor();
+            ArrayList<String> iFactor = impactFactor.GetImpactFactor(entryName);
+            //Map<String, String> iFactor = impactFactor.GetImpactFactor(entryName);
+            //Iterator iterator = iFactor.entrySet().iterator();
+            String message = "";
+            //while (iterator.hasNext()) {
+            //    Map.Entry pair = (Map.Entry) iterator.next();
+            //    message = message + pair.getKey() + ": " + pair.getValue();
+            //}
+
+            message += "Impact Factor: " + iFactor.get(0) + "\n";
+            message += "Impact Factor without Journal Self Cites: " + iFactor.get(1) + "\n";
+            message += "5-Year Impact Factor: " + iFactor.get(2) + "\n";
+            String msg = message;
+            new Thread() {
+                public void run() {
+                    JFrame frame = new JFrame("Impact Factor");
+                    JOptionPane.showMessageDialog(frame, msg);
+                }
+            }.start();
+        });
     }
 
     /**
