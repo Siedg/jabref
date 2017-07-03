@@ -1,25 +1,13 @@
 package org.jabref.gui;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.commons.collections4.*;
+import org.apache.poi.ss.usermodel.*;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,8 +16,8 @@ import java.util.Map;
 /**
  * Created by Siedg on 29/06/2017.
  */
-public class GetImpactFactor {
-    public ArrayList<String> GetImpactFactor (String entryName){
+public class SearchSheets {
+    public Object GetValue (String entryName, Integer columnIndex){
         ArrayList<String> iFactor = new ArrayList<>();
         try {
             FileInputStream fis = new FileInputStream(new File("src\\main\\resources\\databases\\Thomson Reuters - JCR 2015.xls"));
@@ -63,6 +51,15 @@ public class GetImpactFactor {
                         found = true;
                     }
 
+                    // Get the cell value with columnIndex
+                    if (found && cell.getColumnIndex() == columnIndex) {
+                        if (cell.getCellTypeEnum().equals(CellType.NUMERIC)) {
+                            return cell.getNumericCellValue();
+                        } else if (cell.getCellTypeEnum().equals(CellType.STRING)) {
+                            return cell.getStringCellValue();
+                        }
+                    }
+                    /*
                     // Journal Impact Factor
                     if (found && cell.getColumnIndex() == 5) {
                         iFactor.add(cell.getStringCellValue());
@@ -77,10 +74,11 @@ public class GetImpactFactor {
                     if (found && cell.getColumnIndex() == 7) {
                         iFactor.add(cell.getStringCellValue());
                     }
+                    */
                 }
             }
 
-            if (iFactor.isEmpty()) {
+            if (/*iFactor.isEmpty()*/ !found) {
                 JDialog errorMessage = new JDialog();
                 new Thread() {
                     public void run() {
@@ -94,10 +92,7 @@ public class GetImpactFactor {
                         errorMessage.setResizable(false);
                     }
                 }.start();
-            } else {
-                return iFactor;
             }
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

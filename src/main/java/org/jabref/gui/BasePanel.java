@@ -25,10 +25,8 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.math.NumberUtils;
-import com.sun.corba.se.impl.ior.JIDLObjectKeyTemplate;
 import javafx.application.Platform;
 
-import jdk.nashorn.internal.scripts.JO;
 import org.jabref.Globals;
 import org.jabref.JabRefExecutorService;
 import org.jabref.collab.ChangeScanner;
@@ -109,7 +107,6 @@ import org.jabref.logic.util.UpdateField;
 import org.jabref.logic.util.io.FileBasedLock;
 import org.jabref.logic.util.io.FileFinder;
 import org.jabref.logic.util.io.FileFinders;
-import org.jabref.logic.util.io.FileUtil;
 import org.jabref.model.FieldChange;
 import org.jabref.model.bibtexkeypattern.AbstractBibtexKeyPattern;
 import org.jabref.model.database.BibDatabase;
@@ -134,7 +131,6 @@ import com.jgoodies.forms.builder.FormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import sun.plugin2.jvm.CircularByteBuffer;
 
 public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListener {
 
@@ -1112,12 +1108,12 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
 
             String entryName = entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]"));
 
-            GetImpactFactor impactFactor = new GetImpactFactor();
-            ArrayList<String> iFactor = impactFactor.GetImpactFactor(entryName);
+            SearchSheets impactFactor = new SearchSheets();
             String message = "";
-            message += "Impact Factor: " + iFactor.get(0) + "\n";
-            message += "Impact Factor without Journal Self Cites: " + iFactor.get(1) + "\n";
-            message += "5-Year Impact Factor: " + iFactor.get(2) + "\n";
+
+            message += "Impact Factor: " + (impactFactor.GetValue(entryName, 5)).toString() + "\n";
+            message += "Impact Factor without Journal Self Cites: " + (impactFactor.GetValue(entryName, 6)).toString() + "\n";
+            message += "5-Year Impact Factor: " + (impactFactor.GetValue(entryName, 7)).toString() + "\n";
             String msg = message;
             new Thread() {
                 public void run() {
