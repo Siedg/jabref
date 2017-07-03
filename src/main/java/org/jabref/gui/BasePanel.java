@@ -131,6 +131,7 @@ import com.jgoodies.forms.builder.FormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jsoup.Connection;
 
 public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListener {
 
@@ -525,6 +526,8 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
         }));*/
 
         actions.put(Actions.SHOW_IMPACT_FACTOR, (BaseAction) () -> showImpactFactor());
+
+        actions.put(Actions.SHOW_CITATIONS_NUMBER, (BaseAction) () -> showCitations());
 
         actions.put(Actions.OPEN_CONSOLE, (BaseAction) () -> JabRefDesktop
                 .openConsole(frame.getCurrentBasePanel().getBibDatabaseContext().getDatabaseFile().orElse(null)));
@@ -1102,7 +1105,6 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
             final BibEntry entry = bes.get(0);
             if (entry.hasField(FieldName.FILE)) {
                 JOptionPane.showMessageDialog(frame, "File does not have a name!");
-                System.out.println("noname");
                 return;
             }
 
@@ -1118,6 +1120,36 @@ public class BasePanel extends JPanel implements ClipboardOwner, FileUpdateListe
             new Thread() {
                 public void run() {
                     JFrame frame = new JFrame("Impact Factor");
+                    JOptionPane.showMessageDialog(frame, msg);
+                }
+            }.start();
+        });
+    }
+
+    public void showCitations() {
+        JabRefExecutorService.INSTANCE.execute(() -> {
+            final List<BibEntry> bes = mainTable.getSelectedEntries();
+            if (bes.size() != 1) {
+                output(Localization.lang("This operation requires exactly one item to be selected."));
+                return;
+            }
+
+            final BibEntry entry = bes.get(0);
+            if (entry.hasField(FieldName.FILE)) {
+                JOptionPane.showMessageDialog(frame, "File does not have a name!");
+                return;
+            }
+
+            String entryName = entry.getField(FieldName.TITLE).toString().substring(entry.getField(FieldName.TITLE).toString().indexOf("[") + 1, entry.getField(FieldName.TITLE).toString().indexOf("]"));
+
+            SearchSheets citationsNumber = new SearchSheets();
+            String message = "";
+
+            message += "Total cites: " + (citationsNumber.GetValue(entryName, 4)).toString() + "\n";
+            String msg = message;
+            new Thread() {
+                public void run() {
+                    JFrame frame = new JFrame("Total cites");
                     JOptionPane.showMessageDialog(frame, msg);
                 }
             }.start();
