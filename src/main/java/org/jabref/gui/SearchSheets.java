@@ -59,32 +59,16 @@ public class SearchSheets {
                             return cell.getStringCellValue();
                         }
                     }
-                    /*
-                    // Journal Impact Factor
-                    if (found && cell.getColumnIndex() == 5) {
-                        iFactor.add(cell.getStringCellValue());
-                    }
-
-                    // Impact Factor without Journal Self Cites
-                    if (found && cell.getColumnIndex() == 6) {
-                        iFactor.add(cell.getStringCellValue());
-                    }
-
-                    // 5-Year Impact Factor
-                    if (found && cell.getColumnIndex() == 7) {
-                        iFactor.add(cell.getStringCellValue());
-                    }
-                    */
                 }
             }
 
-            if (/*iFactor.isEmpty()*/ !found) {
+            if (!found) {
                 JDialog errorMessage = new JDialog();
                 new Thread() {
                     public void run() {
                         errorMessage.setTitle("Error");
                         errorMessage.setModal(true);
-                        errorMessage.setContentPane(new JOptionPane("Impact factor not found for current entry.", JOptionPane.ERROR_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null));
+                        errorMessage.setContentPane(new JOptionPane("Request not found for current entry.", JOptionPane.ERROR_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null));
                         errorMessage.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                         errorMessage.pack();
                         errorMessage.setLocationRelativeTo(null);
